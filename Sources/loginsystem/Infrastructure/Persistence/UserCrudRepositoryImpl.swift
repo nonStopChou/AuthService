@@ -6,6 +6,7 @@
 //
 
 import FluentKit
+import Vapor
 
 struct UserCrudRepositoryImpl : UserCrudRepository {
     
@@ -22,6 +23,14 @@ struct UserCrudRepositoryImpl : UserCrudRepository {
         try await newUser.save(on: database)
         
         return newUser
+    }
+    
+}
+
+extension Application {
+    
+    var userCrudRepository : any UserCrudRepository {
+        UserCrudRepositoryImpl()
     }
     
 }

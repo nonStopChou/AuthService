@@ -24,3 +24,12 @@ struct UserQueryRepositoryImpl : UserQueryRepository {
     }
     
 }
+
+
+extension Application {
+    
+    var userQueryRepository : any UserQueryRepository {
+        UserQueryRepositoryImpl()
+    }
+    
+}
