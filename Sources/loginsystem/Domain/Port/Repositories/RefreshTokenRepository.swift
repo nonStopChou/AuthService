@@ -13,7 +13,7 @@ protocol RefreshTokenRepository {
     
     func save(payload: RefreshTokenPayload, revoke: Bool, database: any Database) async throws
     
-    func revoke(token: String, database: any Database) async throws
+    func revoke(userID: String, database: any Database) async throws
     
     func findByToken(token: String, database: any Database) async throws -> RefreshTokenEntity?
     

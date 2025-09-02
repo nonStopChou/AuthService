@@ -70,10 +70,10 @@ struct UserLoginUsecaseImpl: LoginUsecase {
 
 extension Application {
     
-    var userLoginUsecase: UserLoginUsecaseImpl {
+    var userLoginUsecase: any LoginUsecase {
         UserLoginUsecaseImpl(
-            userCrudRepository: UserCrudRepositoryImpl(),
-            userRepository: UserQueryRepositoryImpl(), refreshTokenRepository: self.refreshTokenService, jwtAccessTokenService: self.jwtService
+            userCrudRepository: self.userCrudRepository,
+            userRepository: self.userQueryRepository, refreshTokenRepository: self.refreshTokenService, jwtAccessTokenService: self.jwtService
         )
     }
     

@@ -38,9 +38,9 @@ struct RefreshTokenRepositoryImpl : RefreshTokenRepository {
     }
     
     
-    func revoke(token: String, database: any Database) async throws {
+    func revoke(userID: String, database: any Database) async throws {
         try await RefreshTokenEntity.query(on: database)
-            .filter(\RefreshTokenEntity.$token == token)
+            .filter(\RefreshTokenEntity.$userID == userID)
             .set(\.$revoked, to: true)
             .update()
     }
@@ -66,4 +66,12 @@ struct RefreshTokenRepositoryImpl : RefreshTokenRepository {
             .delete()
     }
     
+}
+
+
+extension Application {
+    
+    var refreshTokenRepository : any RefreshTokenRepository {
+        RefreshTokenRepositoryImpl()
+    }
 }

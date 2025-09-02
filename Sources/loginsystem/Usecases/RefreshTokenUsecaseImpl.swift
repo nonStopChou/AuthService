@@ -28,7 +28,7 @@ struct RefreshTokenUsecaseImpl: RefreshTokenUsecase {
 
 extension Application {
     
-    var refreshTokenUsecase: RefreshTokenUsecaseImpl {
+    var refreshTokenUsecase: any RefreshTokenUsecase {
         RefreshTokenUsecaseImpl(
             jwtAccessTokenService: self.jwtService,
             refreshTokenService: self.refreshTokenService

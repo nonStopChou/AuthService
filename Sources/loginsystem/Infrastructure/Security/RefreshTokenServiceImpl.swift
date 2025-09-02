@@ -17,11 +17,12 @@ final class RefreshTokenServiceImpl : RefreshTokenService, @unchecked Sendable {
     
     private let signer: JWTSigner
     private let config: RefreshTokenConfig
-    private let store: any RefreshTokenRepository = RefreshTokenRepositoryImpl()
+    private let store: any RefreshTokenRepository
     
     init(app: Application) {
         self.signer = JWTSigner.hs256(key: Data(app.jwtConfig.signingKey.utf8))
         self.config = app.refreshTokenConfig
+        self.store = app.refreshTokenRepository
     }
     
 
@@ -67,7 +68,7 @@ final class RefreshTokenServiceImpl : RefreshTokenService, @unchecked Sendable {
     
     func revokeRefreshToken(_ token: String, database: any Database) async throws {
         let claims = try signer.verify(token, as: RefreshTokenPayload.self)
-        try await store.revoke(token: claims.jti.value, database: database)
+        try await store.revoke(userID: claims.userID, database: database)
     }
     
     
@@ -81,8 +82,8 @@ extension Application {
         set {self.storage[RefreshTokenKey.self] = newValue}
     }
     
-        private struct RefreshTokenKey: StorageKey {
-            typealias Value = RefreshTokenService
-        }
+    private struct RefreshTokenKey: StorageKey {
+        typealias Value = RefreshTokenService
+    }
     
 }

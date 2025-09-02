@@ -7,7 +7,7 @@
 
 import Vapor
 
-struct AuthController : RouteCollection{
+struct AccountController : RouteCollection{
     
     func boot(routes: any Vapor.RoutesBuilder) throws {
         
@@ -16,6 +16,11 @@ struct AuthController : RouteCollection{
         auth.post(":provider", "url", use: authURL)
         
         auth.get(":provider", "profile", use: login)
+        
+        let account = routes.grouped("account")
+        
+        account.post("logout", use: logout)
+        
         
     }
     
@@ -68,6 +73,17 @@ struct AuthController : RouteCollection{
         let loginUserViewModel: LoginViewModel = req.application.loginPresenter.present(loginUserOutput)
         
         return try await loginUserViewModel.encodeResponse(for: req)
+    }
+    
+    func logout(req: Request) async throws -> Response {
+        
+        let input : LogoutInputDto = try req.content.decode(LogoutInputDto.self)
+        
+        let logoutInput : LogoutInput = .init(accessToken: input.accessToken)
+        
+        let logoutOutput: LogoutOutput = try await req.application.userLogoutUsecase.execute(input: logoutInput, database: req.db)
+        
+        return try await LogoutOutputDto(message: logoutOutput.message).encodeResponse(for: req)
     }
     
 }
