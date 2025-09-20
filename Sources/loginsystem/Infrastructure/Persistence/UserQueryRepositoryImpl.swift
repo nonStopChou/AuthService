@@ -10,6 +10,11 @@ import Vapor
 
 struct UserQueryRepositoryImpl : UserQueryRepository {
     
+    func findUser(userID: String, on database: any Database) async throws -> UserEntity? {
+        return try await UserEntity.query(on: database)
+            .filter(\.$id == userID)
+            .first()
+    }
     
     func findUser(_ provider: String, _ providerID: String, on database: any Database) async throws -> UserEntity? {
         return try await UserEntity.query(on: database)

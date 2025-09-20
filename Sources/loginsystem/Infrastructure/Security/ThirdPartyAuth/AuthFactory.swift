@@ -14,6 +14,7 @@ struct AuthFactory {
         switch provider.lowercased() {
             case "google" : return GoogleAuth(app: app)
             case "discord" : return DiscordAuth(app: app)
+            case "visitor" : return VisitorAuth(app: app)
             default: throw Abort(.badRequest, reason: "Unsupported provider: \(provider)")
         }
         

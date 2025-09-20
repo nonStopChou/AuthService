@@ -8,4 +8,5 @@ import Vapor
 
 struct GetAuthUrlDto: Codable, Sendable {
     let deviceID: String
+    let appScheme: String
 }

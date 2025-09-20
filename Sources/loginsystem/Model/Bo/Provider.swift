@@ -6,7 +6,7 @@
 //
 
 public enum Provider: String, Codable, Sendable {
-    case google, github, linkedin, discord, illegalProvider
+    case google, github, linkedin, discord, visitor, illegalProvider
 }
 
 
@@ -22,6 +22,8 @@ extension Provider {
                 return true
             case "discord":
                 return true
+            case "visitor":
+                return true
             default:
                 return false
             }
@@ -33,6 +35,7 @@ extension Provider {
             case "github": return Provider.github
             case "linkedin": return Provider.linkedin
             case "discord": return Provider.discord
+        case "visitor": return Provider.visitor
         default: return Provider.illegalProvider
         }
     }

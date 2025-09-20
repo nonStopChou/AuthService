@@ -9,7 +9,7 @@ import FluentKit
 
 struct LogoutInput {
         
-    let accessToken: String
+    let refreshToken: String
 }
 
 struct LogoutOutput {

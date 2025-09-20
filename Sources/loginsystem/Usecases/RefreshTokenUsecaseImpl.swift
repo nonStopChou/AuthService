@@ -9,18 +9,26 @@ import FluentKit
 
 struct RefreshTokenUsecaseImpl: RefreshTokenUsecase {
     
-    let jwtAccessTokenService: any JwtAccessTokenService
-    let refreshTokenService: any RefreshTokenService
+    let tokenService: any TokenService
     
-    func execute(token: String, deviceID: String, database: any Database) async throws -> RefreshOutput {
+    func execute(token: String, deviceID: String) async throws -> RefreshOutput {
         
-        let payload: RefreshTokenPayload = try await refreshTokenService.verifyRefreshToken(token, with: deviceID, database: database)
+        let oldRefreshTokenPayload = try tokenService.verifyRefreshToken(refreshToken: token)
         
-        let newAccessToken: String = try jwtAccessTokenService.issueAccessToken(userID: payload.userID, provider: payload.provider, providerID: payload.providerID)
+        let newAccessTokenPayload = AccessTokenPayload.of(userID: oldRefreshTokenPayload.getUserID())
+        let newRefreshTokenPayload = RefreshTokenPayload.of(userID: oldRefreshTokenPayload.getUserID(), deviceID: deviceID)
         
-        let newRefreshToken: String = try await refreshTokenService.issueRefreshToken(userID: payload.userID, provider: payload.provider, providerID: payload.providerID, with: payload.deviceID, database: database)
+        let newAccessToken = DomainMapper.toDomain(payload: newAccessTokenPayload)
+        let newRefreshToken = DomainMapper.toDomain(payload: newRefreshTokenPayload)
         
-        return RefreshOutput(accessToken: newAccessToken, refreshToken: newRefreshToken)
+        try await tokenService.saveToken(kvEntity: KvEntityMapper.toKvEntity(domain: newAccessToken, refreshJti: newRefreshToken.jti))
+        try await tokenService.saveToken(kvEntity: KvEntityMapper.toKvEntity(domain: newRefreshToken))
+        try await tokenService.saveSession(kvEntity: KvEntityMapper.toSessionKvEntity(domain: newRefreshToken))
+        
+        let newAccessTokenStr: String = try tokenService.issueToken(payload: newAccessTokenPayload)
+        let newRefreshTokenStr: String = try tokenService.issueToken(payload: newRefreshTokenPayload)
+        
+        return RefreshOutput(accessToken: newAccessTokenStr, refreshToken: newRefreshTokenStr)
     }
     
 }
@@ -30,8 +38,7 @@ extension Application {
     
     var refreshTokenUsecase: any RefreshTokenUsecase {
         RefreshTokenUsecaseImpl(
-            jwtAccessTokenService: self.jwtService,
-            refreshTokenService: self.refreshTokenService
+            tokenService: self.tokenService
         )
     }
     

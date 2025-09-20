@@ -7,21 +7,19 @@
 import Vapor
 import FluentKit
 
-struct UserLoginUsecaseImpl: LoginUsecase {
+struct LoginUsecaseImpl: LoginUsecase {
     
     let userCrudRepository: any UserCrudRepository
     let userRepository: any UserQueryRepository
-    let refreshTokenRepository: any RefreshTokenService
-    let jwtAccessTokenService: any JwtAccessTokenService
+    let tokenService: any TokenService
 
-    init(userCrudRepository: any UserCrudRepository,  userRepository: any UserQueryRepository, refreshTokenRepository: any RefreshTokenService, jwtAccessTokenService: any JwtAccessTokenService) {
+    init(userCrudRepository: any UserCrudRepository,  userRepository: any UserQueryRepository, tokenService: any TokenService) {
         self.userCrudRepository = userCrudRepository
         self.userRepository = userRepository
-        self.refreshTokenRepository = refreshTokenRepository
-        self.jwtAccessTokenService = jwtAccessTokenService
+        self.tokenService = tokenService
     }
     
-    func execute(_ input: LoginInput, database: any Database) async throws -> LoginOutput {
+    func execute(_ input: LoginUsecaseInput, database: any Database) async throws -> LoginUsecaseOutput {
         
         let authPricipal = input.authPricipal;
         let deviceID : String = input.deviceID
@@ -29,39 +27,34 @@ struct UserLoginUsecaseImpl: LoginUsecase {
         var user: UserEntity? = try await userRepository.findUser(authPricipal.provider.rawValue, authPricipal.providerID, on: database)
         
         if user == nil {
-            user = try await userCrudRepository.createUser(email: authPricipal.email,
-                                                           username: authPricipal.username,
-                                                           provider: authPricipal.provider.rawValue,
-                                                           providerID: authPricipal.providerID ,
-                                                           avatarURL: authPricipal.avatarURL,
-                                                           database: database)
+            print("No User found. Create new one.")
+            user = try await userCrudRepository.createUser(
+                email: authPricipal.email,
+                username: authPricipal.username,
+                provider: authPricipal.provider.rawValue,
+                providerID: authPricipal.providerID ,
+                avatarURL: authPricipal.avatarURL,
+                database: database
+            )
         }
         
         guard let user else {
             throw DomainError.userNotFoundError
         }
+        user.updateAt = Date()
+        try await user.save(on: database)
         
         let userProfile : UserProfile = DomainMapper.toDomain(user: user)
         
-        let accessToken = try jwtAccessTokenService.issueAccessToken(
-            userID: userProfile.id,
-            provider: userProfile.provider,
-            providerID: userProfile.providerID
-        )
+        let authCodePayload: AuthCodeTokenPayload = AuthCodeTokenPayload(userID: userProfile.id, deviceID: deviceID)
         
-        let refreshToken = try await refreshTokenRepository.issueRefreshToken(
-            userID: userProfile.id,
-            provider: userProfile.provider,
-            providerID: userProfile.providerID,
-            with: deviceID,
-            database: database
-        )
+        let code = try tokenService.issueToken(payload: authCodePayload)
         
-        return LoginOutput(
-            userProfile: userProfile,
-            accessToken: accessToken,
-            refreshToken: refreshToken
-        )
+        let authCode = DomainMapper.toDomain(payload: authCodePayload)
+        
+        try await tokenService.saveToken(kvEntity: KvEntityMapper.toKvEntity(domain: authCode))
+        
+        return LoginUsecaseOutput(code: code)
         
     }
     
@@ -71,9 +64,10 @@ struct UserLoginUsecaseImpl: LoginUsecase {
 extension Application {
     
     var userLoginUsecase: any LoginUsecase {
-        UserLoginUsecaseImpl(
+        LoginUsecaseImpl(
             userCrudRepository: self.userCrudRepository,
-            userRepository: self.userQueryRepository, refreshTokenRepository: self.refreshTokenService, jwtAccessTokenService: self.jwtService
+            userRepository: self.userQueryRepository,
+            tokenService: self.tokenService
         )
     }
     

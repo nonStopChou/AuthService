@@ -50,6 +50,7 @@ final class UserEntity: Model, @unchecked Sendable{
         self.provider = provider
         self.providerID = providerID
         self.avatarURL = avatarURL
+        self.createAt = Date()
         self.plan = "free"
     }
     

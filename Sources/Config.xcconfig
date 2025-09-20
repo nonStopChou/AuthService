@@ -13,7 +13,8 @@ DATABASE_PASSWORD=DevChou
 DATABASE_DATABASE=TaskTrackerDB
 
 JWT_ISSUER=AuthService
-JWT_AUDIENCE=""
+JWT_AUDIENCE=""    app.logger.logLevel = .info   // 👈 show all info logs
+
 JWT_ACCESS_EXPIRY=3600
 JWT_SIGNIN_KEY=default-signin-key
 JWT_REFRESH_EXPIRY=604800

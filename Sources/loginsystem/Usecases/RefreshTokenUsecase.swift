@@ -19,7 +19,7 @@ struct RefreshOutput {
 
 protocol RefreshTokenUsecase {
     
-    func execute(token: String, deviceID: String, database: any Database) async throws -> RefreshOutput
+    func execute(token: String, deviceID: String) async throws -> RefreshOutput
     
 }
 

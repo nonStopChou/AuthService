@@ -9,7 +9,7 @@ import Vapor
 import FluentKit
 
 
-struct LoginInput: Sendable {
+struct LoginUsecaseInput: Sendable {
     
     let authPricipal : AuthPrincipal
     let deviceID: String
@@ -21,15 +21,11 @@ struct LoginInput: Sendable {
 }
 
 
-struct LoginOutput {
-    let userProfile: UserProfile
-    let accessToken: String
-    let refreshToken: String
+struct LoginUsecaseOutput {
+    let code: String
     
-    init(userProfile: UserProfile, accessToken: String, refreshToken: String) {
-        self.userProfile = userProfile
-        self.accessToken = accessToken
-        self.refreshToken = refreshToken
+    init(code: String) {
+        self.code = code
     }
 }
 
@@ -37,7 +33,7 @@ struct LoginOutput {
 
 protocol LoginUsecase {
     
-    func execute(_ input: LoginInput, database: any Database) async throws -> LoginOutput
+    func execute(_ input: LoginUsecaseInput, database: any Database) async throws -> LoginUsecaseOutput
     
 }
 

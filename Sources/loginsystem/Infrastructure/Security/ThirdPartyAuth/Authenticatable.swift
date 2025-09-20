@@ -12,7 +12,7 @@ protocol ThirdPartyAuthenticatable {
     
     var config: any AuthConfig { get }
     
-    func fetchAuthURL(deviceID: String) -> String
+    func fetchAuthURL(deviceID: String, appScheme: String) -> String
     
     func fetchUserProfile(code: String) async throws -> AuthPrincipal
     
@@ -34,6 +34,19 @@ protocol OAuthUserProfileProtocol : Decodable {
 
 
 extension ThirdPartyAuthenticatable {
+    
+    
+    func fetchAuthURL(baseURL: String, deviceID: String, appScheme: String) -> String {
+        let rawState = "deviceID=\(deviceID)&appScheme=\(appScheme)"
+        let encodedState = rawState.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? rawState
+        let authURL = baseURL
+            .replacingOccurrences(of: "{clientID}", with: config.clientID)
+            .replacingOccurrences(of: "{redirectURL}", with: config.redirectURL)
+            .replacingOccurrences(of: "{state}", with: encodedState)
+        return authURL
+        
+    }
+    
     
     func fetchUserProfile<T: OAuthResponseProtocol, U: OAuthUserProfileProtocol>(
         code: String,

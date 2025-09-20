@@ -25,4 +25,5 @@ struct UserProfile: Sendable {
         self.avatarURL = avatarURL
         self.lastLoginDate = lastLoginDate
     }
+    
 }

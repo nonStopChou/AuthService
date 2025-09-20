@@ -12,14 +12,7 @@ struct DiscordAuth : ThirdPartyAuthenticatable {
     var provider: String
     var config: any AuthConfig
     
-    private let baseURL = """
-        https://discord.com/api/oauth2/authorize
-        ?client_id={clientID}
-        &redirect_uri={redirectURL}
-        &response_type=code
-        &scope=identify%20email
-        &state={deviceID}
-        """
+    private let baseURL = "https://discord.com/api/oauth2/authorize?client_id={clientID}&redirect_uri={redirectURL}&response_type=code&scope=identify%20email&state={state}"
         
     init(app: Application) {
         self.provider = "discord"
@@ -27,14 +20,8 @@ struct DiscordAuth : ThirdPartyAuthenticatable {
     }
     
     
-    func fetchAuthURL(deviceID: String) -> String {
-        
-        let authURL = baseURL
-            .replacingOccurrences(of: "{clientID}", with: config.clientID)
-            .replacingOccurrences(of: "{redirectURL}", with: config.redirectURL)
-            .replacingOccurrences(of: "{deviceID}", with: "deviceID=\(deviceID)")
-        return authURL
-        
+    func fetchAuthURL(deviceID: String, appScheme: String) -> String {
+        return fetchAuthURL(baseURL: baseURL, deviceID: deviceID, appScheme: appScheme)
     }
     
     func fetchUserProfile(code: String) async throws -> AuthPrincipal {
@@ -77,17 +64,3 @@ struct DiscordConfig : AuthConfig {
     
 }
 
-
-extension Application {
-    
-    var discordConfig: DiscordConfig {
-        .init(
-            clientID: Environment.get("DISCORD_CLIENT_ID") ?? "",
-            clientSecret: Environment.get("DISCORD_CLIENT_SECRET") ?? "",
-            redirectURL: Environment.get("DISCORD_REDIRECT_URL") ?? "",
-            tokenURL: Environment.get("DISCORD_TOKEN_URL") ?? "",
-            userProfileURL: Environment.get("DISCORD_USER_PROFILE_URL") ?? "https://discord.com/api/users/@me"
-        )
-    }
-    
-}

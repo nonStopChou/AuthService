@@ -5,20 +5,15 @@ import Vapor
 import Foundation
 
 
+
 // configures your application
 public func configure(_ app: Application) async throws {
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-    
-    
-    
-    app.jwtService = JwtAccessTokenServiceImpl(app: app)
-    app.refreshTokenService = RefreshTokenServiceImpl(app: app)
-    
-    let authAPI = app
-        .grouped("api")
-        .grouped(AuthMiddleware(accessTokenService: app.jwtService)
-    )
+    app.logger.logLevel = .info   // 👈 show all info logs
+    app.tokenService = TokenServiceImpl(app: app)
+
+    try redis(app)
     
     try database(app)
     // register routes
